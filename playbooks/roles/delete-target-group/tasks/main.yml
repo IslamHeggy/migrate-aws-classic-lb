@@ -1,0 +1,6 @@
+---
+
+- name: delete target groups
+  elb_target_group:
+    name: "{{ target_groups }}"
+    state: absent

@@ -1,0 +1,29 @@
+---
+
+## load balancers vars
+
+# list of classic Load Balancers names to migrate
+classic_load_balancers:
+- test
+
+
+# list of Health check paths associated with load balancers
+health_check_paths:
+- "/accounts/login/" #Put your custom health check path
+
+## DNS vars
+hosted_zone: #Put your hosted zone name
+
+subdomain:
+- hellotest
+
+
+## Waf vars
+web_acl_name: mywaftest
+metric_name: mywaftest
+default_action_type: BLOCK
+
+ipset_name: islam-test
+
+rule_name: islam-rule
+rule_metric: islammetric

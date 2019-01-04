@@ -1,0 +1,14 @@
+---
+
+ - name: create a subdomain for newly created load balancers
+   route53:
+    state: present
+    zone: "{{ hosted_zone }}"
+    record: "{{ item.1 }}.{{ hosted_zone }}"
+    type: A
+    value: "{{ item.0.dns_name }}"
+    alias: True
+    alias_hosted_zone_id: "{{ item.0.canonical_hosted_zone_id}}"
+   with_together:
+     - "{{ new_elb_facts.results }}"
+     - "{{ subdomain }}"

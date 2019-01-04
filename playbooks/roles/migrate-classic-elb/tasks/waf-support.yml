@@ -1,0 +1,43 @@
+---
+
+- include: waf-change-token.yml
+
+- name: create ip set condition
+  shell: aws waf-regional create-ip-set --name "{{ ipset_name }}" --change-token "{{ change_token.stdout }}" | cut -f2
+  register: ipset_out
+
+- include: waf-change-token.yml
+
+- name: update ip set condition
+  shell: aws waf-regional update-ip-set --ip-set-id "{{ ipset_out.stdout_lines[1] }}" --change-token "{{ change_token.stdout }}" --updates "Action=INSERT,IPSetDescriptor={Type=IPV4,Value=192.0.2.0/24}"
+
+- include: waf-change-token.yml
+
+- name: create a new rule
+  shell: aws waf-regional create-rule --name "{{ rule_name }}" --metric-name "{{ rule_metric }}" --change-token "{{ change_token.stdout }}" | grep -i rule |  cut -f4
+  register: rule_out
+
+- include: waf-change-token.yml
+
+- name: update the rule
+  shell: aws waf-regional update-rule  --rule-id "{{ rule_out.stdout }}" --change-token "{{ change_token.stdout }}" --updates "Action=INSERT,Predicate={Negated=false,Type=IPMatch,DataId="{{ ipset_out.stdout_lines[1] }}" }"
+
+- include: waf-change-token.yml
+
+- name: create waf web acl
+  shell: aws waf-regional create-web-acl --name "{{ web_acl_name }}" --metric-name "{{ metric_name }}" --default-action "Type={{ default_action_type }}" --change-token "{{ change_token.stdout }}" | cut -f4
+  register: web_acl_out
+
+- name: wait for the new web acl to reflect
+  pause:
+    seconds: 90
+
+- include: waf-change-token.yml
+
+- name: update waf web acl
+  shell: aws waf-regional update-web-acl --web-acl-id "{{ web_acl_out.stdout_lines[1] }}" --change-token  "{{ change_token.stdout }}" --updates "Action=INSERT,ActivatedRule={Priority=1,RuleId="{{ rule_out.stdout }}",Action={Type=ALLOW},Type=REGULAR}"
+
+- name: associate load balancers to web acl
+  shell: aws waf-regional associate-web-acl --web-acl-id "{{ web_acl_out.stdout_lines[1] }}" --resource-arn "{{ item.load_balancer_arn }}"
+  with_items:
+    - "{{ new_elb_facts.results }}"

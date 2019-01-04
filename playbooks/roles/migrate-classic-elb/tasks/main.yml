@@ -1,0 +1,6 @@
+---
+
+- include: migrate.yml
+- include: http-redirection.yml
+- include: add-subdomain.yml
+- include: waf-support.yml

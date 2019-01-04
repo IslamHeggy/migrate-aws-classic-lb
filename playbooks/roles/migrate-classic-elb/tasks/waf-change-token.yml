@@ -1,0 +1,5 @@
+---
+
+- name: create change token
+  shell: aws waf-regional get-change-token
+  register: change_token

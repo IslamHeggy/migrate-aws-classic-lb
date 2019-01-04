@@ -1,0 +1,61 @@
+---
+
+- name: get classic load balancer facts
+  elb_classic_lb_facts:
+    names: "{{ classic_load_balancers }}"
+  register: elb_facts
+
+# Create new target group and health check with old configurations.
+- name: create new target group with a new listener
+  elb_target_group:
+    name: "{{ item.0.load_balancer_name }}"
+    health_check_protocol: https
+    health_check_interval: "{{ item.0.health_check.interval }}"
+    health_check_port: "{{ item.0.listener_descriptions.0.listener.instance_port }}"
+    healthy_threshold_count: "{{ item.0.health_check.healthy_threshold }}"
+    unhealthy_threshold_count: "{{ item.0.health_check.unhealthy_threshold }}"
+    health_check_timeout: "{{ item.0.health_check.timeout }}"
+    health_check_path: "{{ item.1 }}"
+    targets:
+    protocol: https
+    port: "{{ item.0.listener_descriptions.0.listener.instance_port }}"
+    vpc_id: "{{ item.0.vpc_id }}"
+    state: present
+  register: target_facts
+  with_together:
+     - "{{ elb_facts.elbs }}"
+     - "{{ health_check_paths }}"
+
+
+- name: create new application load balancers
+  elb_application_lb:
+    name: "{{ item.0.load_balancer_name }}-app"
+    subnets: "{{ item.0.subnets }}"
+    security_groups: "{{ item.0.security_groups }}"
+    scheme: "{{ item.0.scheme }}"
+    tags: "{{ item.0.tags }}"
+    listeners:
+      - Protocol: HTTPS
+        Port: 443
+        #SslPolicy: "ELBSecurityPolicy-2016-08"
+        SslPolicy: "{{ item.0.listener_descriptions.1.policy_names }}"
+        DefaultActions:
+          - Type: forward
+            TargetGroupArn: "{{ item.1.target_group_arn }}"
+        Certificates:
+           - CertificateArn: "{{ item.0.listener_descriptions.0.listener.ssl_certificate_id }}"
+    state: present
+  register: new_elb_facts
+  with_together:
+    - "{{ elb_facts.elbs }}"
+    - "{{ target_facts.results }}"
+
+
+- name: attach instances to the new ALB
+  elb_target:
+   target_group_name: "{{ item.0.load_balancer_name }}"
+   target_id: "{{ item.1.instance_id }}"
+   state: present
+  with_subelements:
+    - "{{ elb_facts.elbs }}"
+    - instances
