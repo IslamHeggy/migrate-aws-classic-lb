@@ -26,7 +26,7 @@ Before running the Ansible code you should install the following packages with t
 
 ## How does it work?
 
-The playbook contains different roles that executes the following points
+The playbook contains different tasks that executes the following points
 
 * Migrate the classic load balancers to application load balancers
 * Attach instances to the new load balancers
@@ -36,5 +36,6 @@ The playbook contains different roles that executes the following points
 
 ## How to use?
 
+* Choose the needed tasks and comment the other in the main.yml file
 * Edit the vars and add your suitable values their
 * In case of using the WAF support you should edit it to match your needs.
