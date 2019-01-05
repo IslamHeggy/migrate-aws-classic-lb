@@ -3,12 +3,6 @@ Migrate AWS Classic LB to Application LB
 
 This Ansible playbook automates the migration of AWS classic load balancers to application load balancers with all the configurations and some other features.
 
-
-## Table of Contents
-* **[Prerequisites](#Prerequisites)**
-* **[How does it work?](#Howdoesitwork)**
-* **[How to use?](#"How to use?")**
-
 ## Prerequisites
 Before running the Ansible code you should install the following packages with the specified versions or later on the Ansible server.
 
