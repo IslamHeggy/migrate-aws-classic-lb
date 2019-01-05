@@ -6,7 +6,7 @@ This Ansible playbook automates the migration of AWS classic load balancers to a
 
 ## Table of Contents
 * **[Prerequisites](#Prerequisites)**
-* **[How does it work?](#How does it work)**
+* **[How does it work?](#Howdoesitwork)**
 * **[How to use?](#How to use?)**
 
 ## Prerequisites
